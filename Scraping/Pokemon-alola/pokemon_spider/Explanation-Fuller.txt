@@ -175,4 +175,4 @@ Relevant HTML:
     ... <!-- All the Pokémon data -->
 </tr>
 ```
-Explanation: Finally, the spider yields each entry (i.e., dictionary) from the `pokemon_data` dictionary as a separate item. This effectively outputs the Pokémon data as separate items that can be further processed or saved as desired. The spider will yield all the Pokémon forms found on the web page, each represented as a dictionary containing the relevant data.
+Explanation: The spider yields each entry (i.e., dictionary) from the `pokemon_data` dictionary as a separate item. This effectively outputs the Pokémon data as separate items that can be further processed or saved as desired. The spider will yield all the Pokémon forms found on the web page, each represented as a dictionary containing the relevant data.

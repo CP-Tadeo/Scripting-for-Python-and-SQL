@@ -1,0 +1,10 @@
+cd C:\MAMP\bin\mysql\bin
+
+mysql.exe -h localhost -uroot -proot
+
+USE misc;
+
+SELECT * FROM pokemon;
+
+
+NOTE: DO NOT FORGET TO RUN MYSQL (through SERVICES or MAMP) before doing lines above

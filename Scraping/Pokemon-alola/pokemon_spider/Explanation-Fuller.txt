@@ -1,0 +1,178 @@
+```html
+<tr>
+    <td align="center" class="fooinfo">
+        #00001
+    </td>
+    <td align="center" class="fooinfo">
+        <table class="pkmn">
+            <tr>
+                <td><a href="/pokemon/bulbasaur"><img src="/pokedex-sv/icon/new/001.png" border="0" loading="lazy" /></a></td>
+            </tr>
+        </table>
+    </td>
+    <td align="center" class="fooinfo">
+        <a href="/pokemon/bulbasaur">Bulbasaur</a>
+    </td>
+    <td align="center" class="fooinfo">
+        <a href="/pokemon/type/grass"><img src="/pokedex-bw/type/grass.gif" border="0" /></a>
+        <a href="/pokemon/type/poison"><img src="/pokedex-bw/type/poison.gif" border="0" /></a>
+    </td>
+    <td align="center" class="fooinfo">
+        <a href="/abilitydex/overgrow.shtml">Overgrow</a> <br /><a href="/abilitydex/chlorophyll.shtml">Chlorophyll</a>
+    </td>
+    <td align="center" class="fooinfo">45</td>
+    <td align="center" class="fooinfo">49</td>
+    <td align="center" class="fooinfo">49</td>
+    <td align="center" class="fooinfo">65</td>
+    <td align="center" class="fooinfo">65</td>
+    <td align="center" class="fooinfo">45</td>
+</tr>
+```
+
+1. Line:
+```python
+for row in response.css('table.dextable tr:not(:first-child)'):
+```
+Relevant HTML:
+```html
+<tr>
+    ... <!-- All the Pokémon data -->
+</tr>
+```
+Explanation: The CSS selector `table.dextable tr:not(:first-child)` selects all rows except the first one (header row) in the table with the class `dextable`, which corresponds to each Pokémon entry.
+
+2. Lines:
+```python
+dex_num = row.css('td.fooinfo::text').get()
+name = row.css('td.fooinfo a[href^="/pokemon/"]::text').get()
+abilities = row.css('td.fooinfo a[href^="/abilitydex/"]::text').getall()
+```
+Relevant HTML:
+```html
+<td align="center" class="fooinfo">
+    #00001
+</td>
+<td align="center" class="fooinfo">
+    <a href="/pokemon/bulbasaur">Bulbasaur</a>
+</td>
+<td align="center" class="fooinfo">
+    <a href="/abilitydex/overgrow.shtml">Overgrow</a> <br /><a href="/abilitydex/chlorophyll.shtml">Chlorophyll</a>
+</td>
+```
+Explanation: These lines extract the Pokédex number, Pokémon name, and abilities from the appropriate `<td>` elements in the HTML code.
+
+3. Lines:
+```python
+stats = [stat.strip() for stat in row.css('td.fooinfo:not(:has(table))::text').getall() if stat.strip()]
+stats = stats[1:]
+```
+Relevant HTML:
+```html
+<td align="center" class="fooinfo">45</td>
+<td align="center" class="fooinfo">49</td>
+<td align="center" class="fooinfo">49</td>
+<td align="center" class="fooinfo">65</td>
+<td align="center" class="fooinfo">65</td>
+<td align="center" class="fooinfo">45</td>
+```
+Explanation: These lines extract the base stats of the Pokémon from the appropriate `<td>` elements in the HTML code. The first line collects all non-empty text within the `<td>` elements, and the second line skips the first value since it represents the HP stat.
+
+4. Lines:
+```python
+types = row.css('td.fooinfo a[href^="/pokemon/type/"] img::attr(src)').getall()
+types = [url.split('/')[-1].split('.')[0] for url in types]
+```
+Relevant HTML:
+```html
+<td align="center" class="fooinfo">
+    <a href="/pokemon/type/grass"><img src="/pokedex-bw/type/grass.gif" border="0" /></a>
+    <a href="/pokemon/type/poison"><img src="/pokedex-bw/type/poison.gif" border="0" /></a>
+</td>
+```
+Explanation: These lines extract the Pokémon types from the `<img>` tags inside the appropriate `<a>` elements in the HTML code. The first line collects the URLs of the type images, and the second line processes these URLs to extract the type names.
+
+5. Lines:
+```python
+abilities += ['None'] * (3 - len(abilities))
+```
+Relevant HTML:
+```html
+<td align="center" class="fooinfo">
+    <a href="/abilitydex/overgrow.shtml">Overgrow</a> <br /><a href="/abilitydex/chlorophyll.shtml">Chlorophyll</a>
+</td>
+```
+Explanation: This line ensures that the `abilities` list has at least three elements by filling it with 'None' values if needed. This is to make sure that the abilities list contains three items, even if the Pokémon has fewer abilities listed on the website.
+
+6. Lines:
+```python
+dex_num = dex_num.split("#")[1]
+form_id = f"{dex_num.strip()}_{name.strip()}"
+```
+Relevant HTML:
+```html
+<td align="center" class="fooinfo">
+    #00001
+</td>
+<td align="center" class="fooinfo">
+    <a href="/pokemon/bulbasaur">Bulbasaur</a>
+</td>
+```
+Explanation: These lines extract the numerical part of the `dex_num` (e.g., "00001") and create a `form_id` that serves as a unique identifier for each Pokémon form.
+
+7. Lines:
+```python
+stats += ['None'] * (6 - len(stats))
+HP, ATK, DEF, SPA, SPD, SPE = stats if len(stats) == 6 else print('ok')
+```
+Relevant HTML:
+```html
+<td align="center" class="fooinfo">45</td>
+<td align="center" class="fooinfo">49</td>
+<td align="center" class="fooinfo">49</td>
+<td align="center" class="fooinfo">65</td>
+<td align="center" class="fooinfo">65</td>
+<td align="center" class="fooinfo">45</td>
+```
+Explanation: These lines ensure that the `stats
+
+` list has exactly six elements representing the Pokémon's base stats (HP, ATK, DEF, SPA, SPD, SPE). If a Pokémon doesn't have all six base stats listed on the website, the missing values are filled with 'None'. Then, the variables (`HP`, `ATK`, etc.) are unpacked from the `stats` list. If the number of stats is not exactly six, a message "ok" is printed as a debug statement.
+
+8. Lines:
+```python
+if form_id not in pokemon_data:
+    pokemon_data[form_id] = {
+        'Pokedex Number': dex_num.strip(),
+        'name': name.strip(),
+        'ability 1': abilities[0].strip(),
+        'ability 2': abilities[1].strip(),
+        'ability 3': abilities[2].strip(),
+        'HP': HP,
+        'ATK': ATK,
+        'DEF': DEF,
+        'SPA': SPA,
+        'SPD': SPD,
+        'SPE': SPE,
+        'Type1': types[0] if len(types) >= 1 else '---',  # Set Type1, or 'None' if no type
+        'Type2': types[1] if len(types) == 2 else '---',  # Set Type2, or 'None' if no second type
+    }
+```
+Relevant HTML:
+```html
+<tr>
+    ... <!-- All the Pokémon data -->
+</tr>
+```
+Explanation: These lines create a dictionary for each Pokémon form (unique identified by `form_id`) and store various attributes such as Pokedex number, name, abilities, base stats, and types. If a Pokémon form with the same `form_id` already exists in the `pokemon_data` dictionary, this block will be skipped.
+
+9. Lines:
+```python
+for form_data in pokemon_data.values():
+    yield form_data
+```
+Relevant HTML:
+```html
+<tr>
+    ... <!-- All the Pokémon data -->
+</tr>
+```
+Explanation: Finally, the spider yields each entry (i.e., dictionary) from the `pokemon_data` dictionary as a separate item. This effectively outputs the Pokémon data as separate items that can be further processed or saved as desired. The spider will yield all the Pokémon forms found on the web page, each represented as a dictionary containing the relevant data.

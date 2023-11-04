@@ -1,0 +1,82 @@
+```python
+def parse(self, response):
+    pokemon_data = {}  # Dictionary to store Pokémon data
+
+    for row in response.css('table.dextable tr:not(:first-child)'):
+```
+
+Explanation: The `parse` method is the starting point of the spider. It takes the `response` object, which contains the HTML of the web page, and begins parsing it. The spider is using CSS selectors to target the rows of the table containing the Pokémon data. The line `for row in response.css('table.dextable tr:not(:first-child)'):` selects all rows except the first one (header row) in the table with the class `dextable`.
+
+```python
+    dex_num = row.css('td.fooinfo::text').get()
+    name = row.css('td.fooinfo a[href^="/pokemon/"]::text').get()
+    abilities = row.css('td.fooinfo a[href^="/abilitydex/"]::text').getall()
+    stats = [stat.strip() for stat in row.css('td.fooinfo:not(:has(table))::text').getall() if stat.strip()]
+    stats = stats[1:]
+
+    types = row.css('td.fooinfo a[href^="/pokemon/type/"] img::attr(src)').getall()
+    types = [url.split('/')[-1].split('.')[0] for url in types]
+```
+
+Explanation: In this block, the spider extracts various data for each Pokémon from the current `row` of the table.
+
+- `dex_num`: Extracts the Pokédex number (e.g., "#00001") from the first column of the row.
+- `name`: Extracts the Pokémon name (e.g., "Bulbasaur") from the second column of the row.
+- `abilities`: Extracts the abilities (e.g., ["Overgrow", "Chlorophyll"]) from the third column of the row.
+- `stats`: Extracts the base stats (e.g., [45, 49, 49, 65, 65, 45]) from the fourth to ninth columns of the row.
+- `types`: Extracts the type images URLs (e.g., ["/pokedex-bw/type/grass.gif", "/pokedex-bw/type/poison.gif"]) from the fourth column of the row. The next line then processes these URLs to extract the type names (e.g., ["grass", "poison"]) and stores them in the `types` list.
+
+```python
+    abilities += ['None'] * (3 - len(abilities))
+```
+
+Explanation: This line ensures that the `abilities` list has at least three elements by filling it with 'None' values if needed. This is to make sure that the abilities list contains three items, even if the Pokémon has fewer abilities listed on the website.
+
+```python
+    if not dex_num or not name:
+        continue
+```
+
+Explanation: This line checks whether the `dex_num` or `name` is empty (i.e., not available). If either of them is empty, the spider skips processing the current row (Pokémon) and moves on to the next row.
+
+```python
+    dex_num = dex_num.split("#")[1]
+    form_id = f"{dex_num.strip()}_{name.strip()}"
+```
+
+Explanation: This line extracts the numerical part of the `dex_num` (e.g., "00001") by splitting it at the '#' character. The `form_id` is created by combining the `dex_num` and `name` with an underscore, which serves as a unique identifier for each Pokémon form.
+
+```python
+    stats += ['None'] * (6 - len(stats))
+    HP, ATK, DEF, SPA, SPD, SPE = stats if len(stats) == 6 else print('ok')
+```
+
+Explanation: This block ensures that the `stats` list has exactly six elements representing the Pokémon's base stats (HP, ATK, DEF, SPA, SPD, SPE). If a Pokémon doesn't have all six base stats listed on the website, the missing values are filled with 'None'. Then, the variables (`HP`, `ATK`, etc.) are unpacked from the `stats` list. If the number of stats is not exactly six, a message "ok" is printed as a debug statement.
+
+```python
+    if form_id not in pokemon_data:
+        pokemon_data[form_id] = {
+            'Pokedex Number': dex_num.strip(),
+            'name': name.strip(),
+            'ability 1': abilities[0].strip(),
+            'ability 2': abilities[1].strip(),
+            'ability 3': abilities[2].strip(),
+            'HP': HP,
+            'ATK': ATK,
+            'DEF': DEF,
+            'SPA': SPA,
+            'SPD': SPD,
+            'SPE': SPE,
+            'Type1': types[0] if len(types) >= 1 else '---',  # Set Type1, or 'None' if no type
+            'Type2': types[1] if len(types) == 2 else '---',  # Set Type2, or 'None' if no second type
+        }
+```
+
+Explanation: This block creates a dictionary for each Pokémon form (unique identified by `form_id`) and stores various attributes such as Pokedex number, name, abilities, base stats, and types. If a Pokémon form with the same `form_id` already exists in the `pokemon_data` dictionary, this block will be skipped.
+
+```python
+for form_data in pokemon_data.values():
+    yield form_data
+```
+
+Explanation: Finally, the spider yields each entry (i.e., dictionary) from the `pokemon_data` dictionary as a separate item. This effectively outputs the Pokémon data as separate items that can be further processed or saved as desired. The spider will yield all the Pokémon forms found on the web page, each represented as a dictionary containing the relevant data.

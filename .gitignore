@@ -1,0 +1,23 @@
+# Ignore Django related files and directories
+__pycache__/
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+.DS_Store
+.vscode/
+.idea/
+*.pyc
+*.pyo
+__pycache__/
+*.pyc
+*.pyo
+*.db
+.pytest_cache/
+.coverage
+htmlcov/
+media/
+static/
+node_modules/
+venv/
+env/
